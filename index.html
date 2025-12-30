@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>公众号表格配图生成器</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
@@ -340,6 +342,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -359,37 +362,43 @@
                 </div>
 
                 <div class="option-group">
-                    <label class="option-label">或粘贴 Markdown 表格</label>
-                    <textarea id="markdownInput" placeholder="| 列1 | 列2 | 列3 |&#10;|------|------|------|&#10;| 数据1 | 数据2 | 数据3 |"></textarea>
+                    <label class="option-label">或粘贴表格文本（支持 CSV 和 Markdown）</label>
+                    <textarea id="markdownInput"
+                        placeholder="支持两种格式：&#10;&#10;CSV格式（逗号分隔）：&#10;列1,列2,列3&#10;数据1,数据2,数据3&#10;&#10;Markdown格式：&#10;| 列1 | 列2 | 列3 |&#10;|------|------|------|&#10;| 数据1 | 数据2 | 数据3 |"></textarea>
                 </div>
-                <button class="btn" onclick="parseMarkdown()" style="width: 100%; margin-top: 12px;">解析表格</button>
+                <button class="btn" onclick="parseText()" style="width: 100%; margin-top: 12px;">解析表格</button>
             </div>
 
             <!-- Style Options -->
             <div class="card">
                 <h2 class="card-title">🎨 样式设置</h2>
-                
+
                 <div class="option-group">
                     <label class="option-label">配色方案</label>
                     <div class="option-grid">
                         <div class="option-item active" onclick="selectStyle('color', 'tech', this)">
-                            <div class="color-preview" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                            <div class="color-preview"
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
                             <div>科技紫</div>
                         </div>
                         <div class="option-item" onclick="selectStyle('color', 'claude', this)">
-                            <div class="color-preview" style="background: linear-gradient(135deg, #CC785C 0%, #D4876F 100%);"></div>
+                            <div class="color-preview"
+                                style="background: linear-gradient(135deg, #CC785C 0%, #D4876F 100%);"></div>
                             <div>Claude风</div>
                         </div>
                         <div class="option-item" onclick="selectStyle('color', 'apple', this)">
-                            <div class="color-preview" style="background: linear-gradient(135deg, #000000 0%, #434343 100%);"></div>
+                            <div class="color-preview"
+                                style="background: linear-gradient(135deg, #000000 0%, #434343 100%);"></div>
                             <div>苹果黑</div>
                         </div>
                         <div class="option-item" onclick="selectStyle('color', 'ocean', this)">
-                            <div class="color-preview" style="background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);"></div>
+                            <div class="color-preview"
+                                style="background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);"></div>
                             <div>深海蓝</div>
                         </div>
                         <div class="option-item" onclick="selectStyle('color', 'cyber', this)">
-                            <div class="color-preview" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                            <div class="color-preview"
+                                style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
                             <div>电子蓝</div>
                         </div>
                     </div>
@@ -458,6 +467,8 @@
                         <option value="2" selected>2倍（推荐）</option>
                         <option value="3">3倍</option>
                     </select>
+                    <button class="btn" onclick="copyImage()"
+                        style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">📋 复制图片</button>
                     <button class="btn" onclick="exportImage()">📥 导出图片</button>
                 </div>
             </div>
@@ -523,7 +534,7 @@
 
         function handleFile(file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            
+
             if (ext === 'csv') {
                 Papa.parse(file, {
                     complete: (results) => {
@@ -548,19 +559,41 @@
             }
         }
 
-        function parseMarkdown() {
-            const markdown = document.getElementById('markdownInput').value.trim();
-            if (!markdown) return;
+        function parseText() {
+            const text = document.getElementById('markdownInput').value.trim();
+            if (!text) return;
 
-            const lines = markdown.split('\n').filter(line => line.trim());
-            const data = [];
-            
-            for (let line of lines) {
-                if (line.includes('|')) {
-                    const cells = line.split('|')
-                        .map(cell => cell.trim())
-                        .filter(cell => cell && !cell.match(/^[-:]+$/));
+            const lines = text.split('\n').filter(line => line.trim());
+            let data = [];
+
+            // 检测是 Markdown 还是 CSV 格式
+            const isMarkdown = lines.some(line => line.includes('|'));
+            const isCSV = !isMarkdown && lines.some(line => line.includes(','));
+
+            if (isMarkdown) {
+                // 解析 Markdown 表格
+                for (let line of lines) {
+                    if (line.includes('|')) {
+                        const cells = line.split('|')
+                            .map(cell => cell.trim())
+                            .filter(cell => cell && !cell.match(/^[-:]+$/));
+                        if (cells.length > 0) data.push(cells);
+                    }
+                }
+            } else if (isCSV) {
+                // 解析 CSV 格式（支持逗号分隔）
+                for (let line of lines) {
+                    // 使用更智能的 CSV 解析，处理引号内的逗号
+                    const cells = parseCSVLine(line);
                     if (cells.length > 0) data.push(cells);
+                }
+            } else {
+                // 尝试 Tab 分隔
+                for (let line of lines) {
+                    if (line.includes('\t')) {
+                        const cells = line.split('\t').map(cell => cell.trim());
+                        if (cells.length > 0) data.push(cells);
+                    }
                 }
             }
 
@@ -568,7 +601,39 @@
                 tableData = data;
                 initializeColumnWidths();
                 renderTable();
+            } else {
+                alert('无法识别表格格式，请使用 CSV（逗号分隔）或 Markdown 格式');
             }
+        }
+
+        // 解析 CSV 行，支持引号内的逗号
+        function parseCSVLine(line) {
+            const cells = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    cells.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+
+            // 添加最后一个单元格
+            cells.push(current.trim());
+
+            return cells;
+        }
+
+        // 保留旧函数名以兼容
+        function parseMarkdown() {
+            parseText();
         }
 
         function initializeColumnWidths() {
@@ -579,10 +644,10 @@
 
         function setColumnWidth(mode) {
             if (!tableData || tableData.length === 0) return;
-            
+
             styleConfig.widthMode = mode;
             const colCount = Math.max(...tableData.map(row => row.length));
-            
+
             if (mode === 'auto') {
                 columnWidths = new Array(colCount).fill('auto');
             } else if (mode === 'equal') {
@@ -590,7 +655,7 @@
             } else if (mode === 'compact') {
                 columnWidths = new Array(colCount).fill('120px');
             }
-            
+
             renderTable();
         }
 
@@ -613,15 +678,15 @@
             const sizes = fontSizes[styleConfig.size];
 
             let html = '';
-            
+
             // 添加水印预览层
             const watermark = document.getElementById('watermark').value.trim();
             if (watermark) {
                 html += '<div class="watermark-preview" id="watermarkLayer"></div>';
             }
-            
+
             html += `<table class="preview-table" id="mainTable" style="font-family: ${font} !important;">`;
-            
+
             if (tableData.length > 0) {
                 html += '<thead><tr>';
                 for (let i = 0; i < tableData[0].length; i++) {
@@ -647,30 +712,30 @@
             html += '</tbody></table>';
 
             preview.innerHTML = html;
-            
+
             if (watermark) {
                 renderWatermarkPreview();
             }
-            
+
             attachResizeListeners();
         }
 
         function renderWatermarkPreview() {
             const watermarkLayer = document.getElementById('watermarkLayer');
             if (!watermarkLayer) return;
-            
+
             const watermark = document.getElementById('watermark').value.trim();
             if (!watermark) return;
-            
+
             const preview = document.getElementById('tablePreview');
             const width = preview.offsetWidth;
             const height = preview.offsetHeight;
-            
+
             const spacingX = 350;
             const spacingY = 250;
             const cols = Math.ceil(width / spacingX) + 2;
             const rows = Math.ceil(height / spacingY) + 2;
-            
+
             let html = '';
             for (let row = -1; row < rows; row++) {
                 for (let col = -1; col < cols; col++) {
@@ -679,15 +744,15 @@
                     html += `<div class="watermark-text" style="left: ${x}px; top: ${y}px;">${watermark}</div>`;
                 }
             }
-            
+
             watermarkLayer.innerHTML = html;
         }
 
         // 监听水印输入
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const watermarkInput = document.getElementById('watermark');
             if (watermarkInput) {
-                watermarkInput.addEventListener('input', function() {
+                watermarkInput.addEventListener('input', function () {
                     if (tableData && tableData.length > 0) {
                         renderTable();
                     }
@@ -719,7 +784,7 @@
                 const newWidth = Math.max(80, startWidth + diff);
                 const col = parseInt(currentResizer.dataset.col);
                 columnWidths[col] = newWidth + 'px';
-                
+
                 const th = currentResizer.parentElement;
                 th.style.width = newWidth + 'px';
             });
@@ -746,7 +811,7 @@
             tempDiv.style.position = 'absolute';
             tempDiv.style.left = '-9999px';
             tempDiv.style.background = 'white';
-            tempDiv.style.padding = '40px';
+            tempDiv.style.padding = '6px';
             tempDiv.innerHTML = preview.innerHTML;
             document.body.appendChild(tempDiv);
 
@@ -766,20 +831,20 @@
                     ctx.fillStyle = 'rgba(128, 128, 128, 0.15)';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    
+
                     const angle = -25 * Math.PI / 180;
                     const spacingX = 350 * scale;
                     const spacingY = 250 * scale;
-                    
+
                     // 不旋转整个画布，而是逐个绘制旋转的文字
                     const cols = Math.ceil(canvas.width / spacingX) + 2;
                     const rows = Math.ceil(canvas.height / spacingY) + 2;
-                    
+
                     for (let row = -1; row < rows; row++) {
                         for (let col = -1; col < cols; col++) {
                             const x = col * spacingX;
                             const y = row * spacingY;
-                            
+
                             ctx.save();
                             ctx.translate(x, y);
                             ctx.rotate(angle);
@@ -807,6 +872,137 @@
                 alert('导出失败，请查看控制台了解详情');
             });
         }
+
+        async function copyImage() {
+            const preview = document.getElementById('tablePreview');
+            const watermark = document.getElementById('watermark').value.trim();
+            const scale = parseFloat(document.getElementById('imageSize').value);
+
+            if (!tableData || tableData.length === 0) {
+                alert('请先上传或粘贴表格数据');
+                return;
+            }
+
+            if (typeof html2canvas === 'undefined') {
+                alert('功能加载失败，请确保有网络连接');
+                return;
+            }
+
+            // 检查浏览器是否支持剪贴板 API
+            if (!navigator.clipboard || !navigator.clipboard.write) {
+                alert('您的浏览器不支持复制图片功能，请使用导出图片功能');
+                return;
+            }
+
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.background = 'white';
+            tempDiv.style.padding = '6px';
+            tempDiv.innerHTML = preview.innerHTML;
+            document.body.appendChild(tempDiv);
+
+            try {
+                const canvas = await html2canvas(tempDiv, {
+                    scale: scale,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true
+                });
+
+                document.body.removeChild(tempDiv);
+
+                // 添加水印
+                if (watermark) {
+                    const ctx = canvas.getContext('2d');
+                    const fontSize = 28 * scale;
+                    ctx.font = `${fontSize}px Microsoft YaHei, sans-serif`;
+                    ctx.fillStyle = 'rgba(128, 128, 128, 0.15)';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    const angle = -25 * Math.PI / 180;
+                    const spacingX = 350 * scale;
+                    const spacingY = 250 * scale;
+
+                    const cols = Math.ceil(canvas.width / spacingX) + 2;
+                    const rows = Math.ceil(canvas.height / spacingY) + 2;
+
+                    for (let row = -1; row < rows; row++) {
+                        for (let col = -1; col < cols; col++) {
+                            const x = col * spacingX;
+                            const y = row * spacingY;
+
+                            ctx.save();
+                            ctx.translate(x, y);
+                            ctx.rotate(angle);
+                            ctx.fillText(watermark, 0, 0);
+                            ctx.restore();
+                        }
+                    }
+                }
+
+                // 将 canvas 转换为 blob 并复制到剪贴板
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        'image/png': blob
+                    })
+                ]);
+
+                // 显示成功提示
+                showCopySuccess();
+            } catch (err) {
+                if (document.body.contains(tempDiv)) {
+                    document.body.removeChild(tempDiv);
+                }
+                console.error('复制失败:', err);
+                alert('复制失败：' + err.message + '\n\n请尝试使用导出图片功能');
+            }
+        }
+
+        function showCopySuccess() {
+            // 创建提示元素
+            const toast = document.createElement('div');
+            toast.innerHTML = '✅ 图片已复制到剪贴板';
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                color: white;
+                padding: 20px 40px;
+                border-radius: 12px;
+                font-size: 18px;
+                font-weight: 600;
+                box-shadow: 0 10px 40px rgba(17, 153, 142, 0.4);
+                z-index: 10000;
+                animation: fadeInOut 2s ease-in-out forwards;
+            `;
+
+            // 添加动画样式
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeInOut {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(toast);
+
+            // 2秒后移除
+            setTimeout(() => {
+                document.body.removeChild(toast);
+                document.head.removeChild(style);
+            }, 2000);
+        }
     </script>
 </body>
+
 </html>
