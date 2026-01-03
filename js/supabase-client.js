@@ -41,10 +41,14 @@ async function saveConfig(config) {
     const configData = {
         ...config,
         user_id: session.user.id,
-        updated_at: new Date()
+        updated_at: new Date().toISOString()
     };
 
     if (config.id) {
+        // Remove restricted fields for update
+        delete configData.id;
+        delete configData.created_at;
+
         const { data, error } = await supabaseClient
             .from('api_configs')
             .update(configData)
@@ -79,8 +83,54 @@ async function setActiveConfig(id) {
     // Then set the chosen one to active
     const { data, error } = await supabaseClient
         .from('api_configs')
-        .update({ is_active: true })
+        .update({ is_active: true, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select();
     return { data, error };
+}
+
+/**
+ * Get the most appropriate config:
+ * 1. Active Cloud Config
+ * 2. Any Cloud Config (first available)
+ * 3. Local storage fallback
+ */
+async function getEffectiveConfig() {
+    try {
+        const session = await getSession();
+        if (session) {
+            const { data: configs } = await fetchConfigs();
+            if (configs && configs.length > 0) {
+                // Try active one
+                const active = configs.find(c => c.is_active);
+                if (active) return { source: 'cloud_active', config: active };
+                // Fallback to first available
+                return { source: 'cloud_fallback', config: configs[0] };
+            }
+        }
+    } catch (e) {
+        console.warn('Cloud config fetch failed:', e);
+    }
+
+    // Local fallback
+    const local = localStorage.getItem('beiluo_config');
+    if (local) {
+        try {
+            const parsed = JSON.parse(local);
+            if (parsed.apiKey) {
+                // Map local format to match DB format for consistency
+                return {
+                    source: 'local',
+                    config: {
+                        name: '本地配置',
+                        api_base: parsed.apiBase,
+                        api_key: parsed.apiKey,
+                        model_name: parsed.modelName
+                    }
+                };
+            }
+        } catch (e) { }
+    }
+
+    return { source: 'none', config: null };
 }

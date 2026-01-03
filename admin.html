@@ -104,8 +104,18 @@
 
         .config-item.active {
             border-color: var(--primary);
-            background: var(--glow);
+            background: #eff6ff;
             border-width: 2px;
+        }
+
+        .active-badge {
+            background: var(--success);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
         .config-item .name {
@@ -120,18 +130,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        .config-item .tag-active {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: var(--success);
-            color: white;
-            border-radius: 100px;
-            padding: 2px 8px;
-            font-size: 10px;
-            font-weight: 700;
         }
 
         .btn-add {
@@ -398,12 +396,21 @@
         }
 
         function renderList() {
-            const listEl = document.getElementById('configList');
-            listEl.innerHTML = configs.map(cfg => `
-                <div class="config-item ${currentConfig?.id === cfg.id ? 'active' : ''}" onclick="selectConfig('${cfg.id}')">
-                    <div class="name">${cfg.name}</div>
-                    <div class="url">${cfg.api_base || '默认 URL'}</div>
-                    ${cfg.is_active ? '<span class="tag-active">当前使用</span>' : ''}
+            const list = document.getElementById('configList');
+            if (configs.length === 0) {
+                list.innerHTML = '<div style="padding: 20px; color: var(--text-muted); text-align: center;">暂无配置</div>';
+                return;
+            }
+
+            list.innerHTML = configs.map(cfg => `
+                <div class="config-item ${currentConfig && currentConfig.id === cfg.id ? 'active' : ''}" onclick="selectConfig('${cfg.id}')">
+                    <div style="flex: 1; overflow: hidden;">
+                        <div style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${cfg.name}</span>
+                            ${cfg.is_active ? '<span class="active-badge">当前使用</span>' : ''}
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${cfg.api_base}</div>
+                    </div>
                 </div>
             `).join('');
         }
@@ -538,14 +545,28 @@
         }
 
         async function handleSetActive() {
-            if (!currentConfig.id) return;
-            const { error } = await setActiveConfig(currentConfig.id);
+            if (!currentConfig || !currentConfig.id) return;
+
+            const btn = document.getElementById('btnSetActive');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '设置中...';
+
+            const { data, error } = await setActiveConfig(currentConfig.id);
             if (error) {
                 showToast('设置失败: ' + error.message, 'error');
             } else {
                 showToast('已切换为当前使用配置！', 'success');
-                loadConfigs();
+                // Refresh all configs to update the is_active badges
+                await loadConfigs();
+                // Find the updated current config
+                if (data && data.length > 0) {
+                    currentConfig = { ...data[0] };
+                    renderList();
+                }
             }
+            btn.disabled = false;
+            btn.textContent = originalText;
         }
 
         async function handleDelete() {
