@@ -213,13 +213,21 @@
         #tablePreview {
             overflow-x: auto;
             background: white;
-            padding: 40px;
+            padding: 20px;
             border-radius: 12px;
-            min-height: 300px;
+            min-height: 150px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             position: relative;
+        }
+
+        .table-container {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
         }
 
         .watermark-preview {
@@ -252,7 +260,7 @@
 
         .preview-table {
             border-collapse: collapse;
-            width: auto;
+            width: 100%;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
@@ -280,7 +288,7 @@
         .empty-state {
             text-align: center;
             color: #86868b;
-            padding: 60px 20px;
+            padding: 40px 20px;
         }
 
         .empty-icon {
@@ -401,6 +409,11 @@
                                 style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
                             <div>电子蓝</div>
                         </div>
+                        <div class="option-item" onclick="selectStyle('color', 'fresh', this)">
+                            <div class="color-preview"
+                                style="background: linear-gradient(135deg, #5DADE2 0%, #85C1E9 100%);"></div>
+                            <div>清新蓝</div>
+                        </div>
                     </div>
                 </div>
 
@@ -442,6 +455,19 @@
                         <button class="btn btn-secondary" onclick="setColumnWidth('compact')">紧凑模式</button>
                     </div>
                     <p style="font-size: 12px; color: #86868b; margin-top: 8px;">💡 提示：表格渲染后可拖动列边界调整宽度</p>
+                </div>
+
+                <div class="option-group">
+                    <label class="option-label">表格标题</label>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="checkbox" id="showTitle" onchange="toggleTitle()"
+                                style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>显示标题</span>
+                        </label>
+                        <input type="text" id="tableTitle" class="export-input" placeholder="请输入表格标题" style="flex: 1;"
+                            oninput="renderTable()" disabled>
+                    </div>
                 </div>
             </div>
 
@@ -491,7 +517,8 @@
             apple: { header: 'linear-gradient(135deg, #000000 0%, #434343 100%)', stripe: '#F5F5F7', text: '#1d1d1f' },
             tech: { header: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', stripe: '#f7f8fc', text: '#1d1d1f' },
             ocean: { header: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)', stripe: '#f0fdfa', text: '#1d1d1f' },
-            cyber: { header: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', stripe: '#f0f9ff', text: '#1d1d1f' }
+            cyber: { header: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', stripe: '#f0f9ff', text: '#1d1d1f' },
+            fresh: { header: 'linear-gradient(135deg, #5DADE2 0%, #85C1E9 100%)', stripe: '#D6EAF8', text: '#1d1d1f', titleBg: '#5DADE2' }
         };
 
         const fontFamilies = {
@@ -506,9 +533,9 @@
         };
 
         const fontSizes = {
-            small: { header: '14px', body: '12px' },
-            medium: { header: '16px', body: '14px' },
-            large: { header: '18px', body: '16px' }
+            small: { header: '18px', body: '16px' },
+            medium: { header: '22px', body: '18px' },
+            large: { header: '28px', body: '24px' }
         };
 
         const uploadArea = document.getElementById('uploadArea');
@@ -669,6 +696,16 @@
             renderTable();
         }
 
+        function toggleTitle() {
+            const checkbox = document.getElementById('showTitle');
+            const titleInput = document.getElementById('tableTitle');
+            titleInput.disabled = !checkbox.checked;
+            if (checkbox.checked) {
+                titleInput.focus();
+            }
+            renderTable();
+        }
+
         function renderTable() {
             if (!tableData || tableData.length === 0) return;
 
@@ -685,7 +722,20 @@
                 html += '<div class="watermark-preview" id="watermarkLayer"></div>';
             }
 
-            html += `<table class="preview-table" id="mainTable" style="font-family: ${font} !important;">`;
+            // 添加表格标题
+            const showTitle = document.getElementById('showTitle').checked;
+            const titleText = document.getElementById('tableTitle').value.trim();
+
+            // 开始容器
+            html += '<div class="table-container">';
+
+            if (showTitle && titleText) {
+                const titleBg = scheme.titleBg || scheme.header;
+                html += `<div style="background: ${titleBg}; color: white; text-align: center; padding: 16px 24px; font-size: ${parseInt(sizes.header) + 4}px; font-weight: 700; font-family: ${font} !important; border-radius: 8px 8px 0 0; margin-bottom: 0;">${titleText}</div>`;
+            }
+
+            const tableRadius = showTitle && titleText ? 'border-radius: 0 0 8px 8px;' : '';
+            html += `<table class="preview-table" id="mainTable" style="font-family: ${font} !important; ${tableRadius}">`;
 
             if (tableData.length > 0) {
                 html += '<thead><tr>';
@@ -709,7 +759,7 @@
                 }
                 html += '</tr>';
             }
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
 
             preview.innerHTML = html;
 
