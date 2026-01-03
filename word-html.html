@@ -1297,7 +1297,67 @@ ${contentReq}
             document.querySelectorAll('textarea').forEach(autoResizeTextarea);
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
+    <script>
+        // Use an async IIFE to ensure scripts are loaded
+        (async () => {
+            const statusText = document.getElementById('apiStatusText');
+            if (!statusText) return;
+
+            try {
+                // Wait a bit for other potential initializations
+                await new Promise(r => setTimeout(r, 100));
+
+                if (typeof getEffectiveConfig !== 'undefined') {
+                    const { source, config } = await getEffectiveConfig();
+
+                    if (config && config.api_key) {
+                        // Populate internal inputs (if they exist)
+                        const baseInput = document.getElementById('apiBase');
+                        const keyInput = document.getElementById('apiKey');
+                        if (baseInput) baseInput.value = config.api_base || 'https://api.openai.com/v1';
+                        if (keyInput) keyInput.value = config.api_key;
+
+                        // Populate model select
+                        const modelSelect = document.getElementById('modelName');
+                        if (modelSelect) {
+                            if (config.models && config.models.length > 0) {
+                                modelSelect.innerHTML = config.models.map(m =>
+                                    `<option value="${m}" ${m === config.model_name ? 'selected' : ''}>${m}</option>`
+                                ).join('');
+                            } else if (config.model_name) {
+                                modelSelect.innerHTML = `<option value="${config.model_name}" selected>${config.model_name}</option>`;
+                            }
+                        }
+
+                        // Store for persistent use in this tool
+                        const localStore = {
+                            apiBase: config.api_base,
+                            apiKey: config.api_key,
+                            modelName: config.model_name,
+                            models: config.models || []
+                        };
+                        localStorage.setItem('beiluo_config', JSON.stringify(localStore));
+
+                        if (source.startsWith('cloud')) {
+                            statusText.textContent = `☁️ 已同步云端 (配置: ${config.name})`;
+                            statusText.style.color = '#059669';
+                        } else {
+                            statusText.textContent = `✅ 已配置本地 (模型: ${config.model_name || '默认'})`;
+                            statusText.style.color = '#059669';
+                        }
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Config initialization error:', e);
+            }
+
+            statusText.innerHTML = '⚠️ 未配置 API Key，请先前往设置 <a href="admin.html" style="color:inherit;text-decoration:underline">⚙️ API 设置</a>';
+            statusText.style.color = '#DC2626';
+        })();
+    </script>
 </body>
 
 </html>
