@@ -13,14 +13,22 @@
         :root {
             --primary: #2563EB;
             --secondary: #3B82F6;
+            --accent: #7C3AED;
             --text: #1E293B;
             --text-muted: #64748B;
             --border: #E2E8F0;
             --bg: #F8FAFC;
             --white: #FFFFFF;
             --success: #10B981;
+            --success-light: #D1FAE5;
+            --error: #EF4444;
+            --error-light: #FEE2E2;
+            --warning: #F59E0B;
+            --warning-light: #FEF3C7;
             --radius-md: 12px;
+            --radius-lg: 16px;
             --transition: all 0.3s ease;
+            --glow: rgba(37, 99, 235, 0.15);
         }
 
         * {
@@ -40,24 +48,76 @@
             padding: 20px;
         }
 
+        /* Background decoration */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
         .settings-card {
             background: var(--white);
             width: 100%;
-            max-width: 500px;
+            max-width: 520px;
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
+        }
+
+        .header-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px var(--glow);
+        }
+
+        .header-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: white;
+            fill: none;
+            stroke-width: 2;
         }
 
         .header h1 {
             font-size: 24px;
             font-weight: 700;
             margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .header p {
@@ -66,7 +126,7 @@
         }
 
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .form-label {
@@ -76,44 +136,134 @@
             font-size: 14px;
         }
 
+        .form-hint {
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
         .form-input {
             width: 100%;
             padding: 12px 16px;
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
             font-size: 14px;
+            font-family: inherit;
             transition: var(--transition);
+            background: var(--white);
+        }
+
+        .form-input:hover {
+            border-color: #CBD5E1;
         }
 
         .form-input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px var(--glow);
+        }
+
+        .form-input:disabled {
+            background: var(--bg);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        /* Select styling */
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Input with button group */
+        .input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-group .form-input {
+            flex: 1;
         }
 
         .btn {
-            width: 100%;
-            padding: 14px;
+            padding: 12px 20px;
             border: none;
             border-radius: var(--radius-md);
             font-weight: 600;
-            font-size: 15px;
+            font-size: 14px;
             cursor: pointer;
             transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-full {
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
         }
 
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
-            margin-bottom: 12px;
+            box-shadow: 0 4px 16px var(--glow);
         }
 
-        .btn-primary:hover {
-            background: var(--secondary);
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #34D399 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-outline {
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .btn-outline:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-text {
+            width: 100%;
+            padding: 14px;
             background: none;
             color: var(--text-muted);
         }
@@ -122,6 +272,101 @@
             color: var(--text);
         }
 
+        /* Spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-outline .spinner {
+            border-color: rgba(37, 99, 235, 0.1);
+            border-top-color: var(--primary);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Loading state for buttons */
+        .btn .btn-text-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn .loading-content {
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn.loading .btn-text-content {
+            display: none;
+        }
+
+        .btn.loading .loading-content {
+            display: flex;
+        }
+
+        /* Validation status badge */
+        .validation-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+
+        .validation-status.pending {
+            background: var(--warning-light);
+            color: #92400E;
+            border: 1px solid #FCD34D;
+        }
+
+        .validation-status.success {
+            background: var(--success-light);
+            color: #065F46;
+            border: 1px solid #6EE7B7;
+        }
+
+        .validation-status.error {
+            background: var(--error-light);
+            color: #991B1B;
+            border: 1px solid #FCA5A5;
+        }
+
+        .validation-status svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Model selection */
+        .model-selection {
+            display: none;
+        }
+
+        .model-selection.show {
+            display: block;
+        }
+
+        .model-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Status message */
         .status-msg {
             margin-top: 16px;
             font-size: 13px;
@@ -138,60 +383,331 @@
         .status-msg.success {
             color: var(--success);
         }
+
+        .status-msg.error {
+            color: var(--error);
+        }
+
+        /* Button group */
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
     </style>
 </head>
 
 <body>
     <div class="settings-card">
         <div class="header">
+            <div class="header-icon">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+            </div>
             <h1>全局设置</h1>
             <p>配置您的 API 密钥，该设置将在所有工具中生效</p>
         </div>
 
+        <!-- Validation Status -->
+        <div id="validationStatus" class="validation-status pending">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span id="validationText">请先验证 API Key 有效性</span>
+        </div>
+
         <div class="form-group">
-            <label class="form-label">API Base URL (选填)</label>
+            <label class="form-label">API Base URL <span class="form-hint">(选填)</span></label>
             <input type="text" id="apiBase" class="form-input" placeholder="默认: https://api.openai.com/v1">
         </div>
 
         <div class="form-group">
             <label class="form-label">API Key</label>
-            <input type="password" id="apiKey" class="form-input" placeholder="sk-...">
+            <div class="input-group">
+                <input type="password" id="apiKey" class="form-input" placeholder="sk-...">
+                <button class="btn btn-outline" id="validateBtn" onclick="validateApiKey()">
+                    <span class="btn-text-content">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        验证
+                    </span>
+                    <span class="loading-content">
+                        <span class="spinner"></span>
+                        验证中
+                    </span>
+                </button>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label class="form-label">模型名称 (Model)</label>
-            <input type="text" id="modelName" class="form-input" placeholder="例如: gpt-3.5-turbo">
+        <!-- Model Selection (hidden until validation) -->
+        <div id="modelSelection" class="form-group model-selection">
+            <label class="form-label">选择模型</label>
+            <select id="modelName" class="form-input form-select">
+                <option value="">-- 请先验证 API Key --</option>
+            </select>
+            <div id="modelCount" class="model-count"></div>
         </div>
 
-        <button class="btn btn-primary" onclick="saveSettings()">保存配置</button>
-        <button class="btn btn-text" onclick="history.back()">返回上一页</button>
+        <div class="button-group">
+            <button class="btn btn-success btn-full" id="saveBtn" onclick="saveSettings()" disabled>
+                <span class="btn-text-content">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    保存配置
+                </span>
+                <span class="loading-content">
+                    <span class="spinner"></span>
+                    保存中...
+                </span>
+            </button>
+            <button class="btn btn-text" onclick="history.back()">返回上一页</button>
+        </div>
 
-        <div id="statusMsg" class="status-msg">✅ 配置已保存</div>
+        <div id="statusMsg" class="status-msg"></div>
     </div>
 
     <script>
+        // Redirect to new admin panel as we've migrated to cloud sync
+        window.location.href = 'admin.html';
+    </script>
+    <script>
+        // State
+        let isValidated = false;
+        let availableModels = [];
+
         // Load settings on init
         document.addEventListener('DOMContentLoaded', () => {
             const config = JSON.parse(localStorage.getItem('beiluo_config') || '{}');
             document.getElementById('apiBase').value = config.apiBase || '';
             document.getElementById('apiKey').value = config.apiKey || '';
-            document.getElementById('modelName').value = config.modelName || 'gpt-3.5-turbo';
+
+            // If we have saved models, show them
+            if (config.models && config.models.length > 0) {
+                availableModels = config.models;
+                populateModelDropdown(config.models, config.modelName);
+                document.getElementById('modelSelection').classList.add('show');
+
+                // If config exists with valid key, show success state
+                if (config.apiKey) {
+                    updateValidationStatus('success', `✅ API Key 已配置 (${config.models.length} 个可用模型)`);
+                    isValidated = true;
+                    document.getElementById('saveBtn').disabled = false;
+                }
+            } else if (config.modelName) {
+                // Legacy: just have modelName without models list
+                document.getElementById('modelSelection').classList.add('show');
+                const select = document.getElementById('modelName');
+                select.innerHTML = `<option value="${config.modelName}" selected>${config.modelName}</option>`;
+
+                if (config.apiKey) {
+                    updateValidationStatus('success', `✅ API Key 已配置`);
+                    isValidated = true;
+                    document.getElementById('saveBtn').disabled = false;
+                }
+            }
+
+            // Listen for input changes to reset validation
+            document.getElementById('apiKey').addEventListener('input', resetValidation);
+            document.getElementById('apiBase').addEventListener('input', resetValidation);
         });
 
+        function resetValidation() {
+            isValidated = false;
+            document.getElementById('saveBtn').disabled = true;
+            updateValidationStatus('pending', '请先验证 API Key 有效性');
+        }
+
+        function updateValidationStatus(type, message) {
+            const statusEl = document.getElementById('validationStatus');
+            const textEl = document.getElementById('validationText');
+
+            statusEl.className = `validation-status ${type}`;
+            textEl.textContent = message;
+
+            // Update icon based on type
+            let iconSvg = '';
+            if (type === 'pending') {
+                iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>`;
+            } else if (type === 'success') {
+                iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>`;
+            } else if (type === 'error') {
+                iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>`;
+            }
+            statusEl.innerHTML = iconSvg + `<span id="validationText">${message}</span>`;
+        }
+
+        function populateModelDropdown(models, selectedModel) {
+            const select = document.getElementById('modelName');
+            select.innerHTML = models.map(m =>
+                `<option value="${m}" ${m === selectedModel ? 'selected' : ''}>${m}</option>`
+            ).join('');
+
+            document.getElementById('modelCount').textContent = `共 ${models.length} 个可用模型`;
+        }
+
+        async function validateApiKey() {
+            const apiBase = document.getElementById('apiBase').value.trim() || 'https://api.openai.com/v1';
+            const apiKey = document.getElementById('apiKey').value.trim();
+
+            if (!apiKey) {
+                showStatusMessage('请先输入 API Key', 'error');
+                return;
+            }
+
+            // Show loading state
+            const btn = document.getElementById('validateBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+            updateValidationStatus('pending', '正在验证 API Key...');
+
+            try {
+                const cleanBase = apiBase.replace(/\/+$/, '');
+
+                // Fetch models list to validate API key
+                const response = await fetch(`${cleanBase}/models`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`
+                    }
+                });
+
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type') || '';
+                    if (!contentType.includes('application/json')) {
+                        const text = await response.text();
+                        console.group('API 异常响应');
+                        console.log('状态码:', response.status);
+                        console.log('内容类型:', contentType);
+                        console.log('响应预览:', text.substring(0, 500));
+                        console.groupEnd();
+
+                        let hint = '服务器返回了网页而不是 API 数据。';
+                        if (!apiBase.toLowerCase().includes('/v1')) {
+                            hint += ' 请在 URL 末尾加上 /v1';
+                        }
+                        throw new Error(hint);
+                    }
+
+                    const data = await response.json();
+                    let models = [];
+
+                    if (data.data && Array.isArray(data.data)) {
+                        // Sort models: prioritize common ones
+                        models = data.data.map(m => m.id).sort((a, b) => {
+                            const priorities = ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo', 'claude-3'];
+                            const aIdx = priorities.findIndex(p => a.includes(p));
+                            const bIdx = priorities.findIndex(p => b.includes(p));
+                            if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                            if (aIdx !== -1) return -1;
+                            if (bIdx !== -1) return 1;
+                            return a.localeCompare(b);
+                        });
+                    }
+
+                    if (models.length > 0) {
+                        availableModels = models;
+                        populateModelDropdown(models, models[0]);
+
+                        // Show model selection
+                        document.getElementById('modelSelection').classList.add('show');
+
+                        // Update status
+                        isValidated = true;
+                        document.getElementById('saveBtn').disabled = false;
+                        updateValidationStatus('success', `✅ 验证成功！已获取 ${models.length} 个可用模型`);
+                        showStatusMessage('验证成功，请选择模型后保存', 'success');
+                    } else {
+                        throw new Error('未获取到可用模型列表');
+                    }
+                } else {
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const error = await response.json();
+                        throw new Error(error.error?.message || `请求失败: ${response.status}`);
+                    } else {
+                        throw new Error(`服务器返回了非 JSON 响应。状态码: ${response.status}`);
+                    }
+                }
+            } catch (error) {
+                console.error('API validation error:', error);
+                updateValidationStatus('error', `❌ ${error.message}`);
+                showStatusMessage(error.message, 'error');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
         function saveSettings() {
+            if (!isValidated) {
+                showStatusMessage('请先验证 API Key 有效性', 'error');
+                return;
+            }
+
             const config = {
-                apiBase: document.getElementById('apiBase').value.trim(),
+                apiBase: document.getElementById('apiBase').value.trim() || 'https://api.openai.com/v1',
                 apiKey: document.getElementById('apiKey').value.trim(),
-                modelName: document.getElementById('modelName').value.trim() || 'gpt-3.5-turbo'
+                modelName: document.getElementById('modelName').value,
+                models: availableModels
             };
 
             localStorage.setItem('beiluo_config', JSON.stringify(config));
 
+            showStatusMessage('✅ 配置已保存', 'success');
+
+            // Optional: redirect back after short delay
+            setTimeout(() => {
+                history.back();
+            }, 1500);
+        }
+
+        function showStatusMessage(message, type) {
             const msg = document.getElementById('statusMsg');
-            msg.className = 'status-msg success show';
+            msg.textContent = message;
+            msg.className = `status-msg ${type} show`;
             setTimeout(() => {
                 msg.className = 'status-msg';
-            }, 2000);
+            }, 3000);
         }
     </script>
 </body>

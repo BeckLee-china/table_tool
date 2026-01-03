@@ -1190,6 +1190,32 @@
             }, 2000);
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script>
+        // Check Cloud Config on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                if (typeof getSession !== 'undefined') {
+                    const session = await getSession();
+                    if (session) {
+                        const { data } = await supabaseClient
+                            .from('api_configs')
+                            .select('*')
+                            .eq('user_id', session.user.id)
+                            .eq('is_active', true)
+                            .maybeSingle();
+
+                        if (data) {
+                            console.log('☁️ Cloud Config Synced:', data.name);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Cloud sync error:', e);
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>身份认证 - 北洛工具箱</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #2563EB;
+            --secondary: #3B82F6;
+            --accent: #7C3AED;
+            --text: #1E293B;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+            --bg: #F8FAFC;
+            --white: #FFFFFF;
+            --error: #EF4444;
+            --radius-lg: 16px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-1px);
+        }
+
+        .toggle-mode {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .toggle-mode a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 13px;
+            margin-bottom: 16px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-card">
+        <div class="header">
+            <h1 id="authTitle">登录</h1>
+            <p id="authDesc">登录以同步您的云端配置</p>
+        </div>
+
+        <div id="errorMsg" class="error-msg"></div>
+
+        <div class="form-group">
+            <label class="form-label">邮箱</label>
+            <input type="email" id="email" class="form-input" placeholder="example@mail.com">
+        </div>
+        <div class="form-group">
+            <label class="form-label">密码</label>
+            <input type="password" id="password" class="form-input" placeholder="••••••••">
+        </div>
+
+        <button class="btn btn-primary" id="authBtn" onclick="handleAuth()">登录</button>
+
+        <div class="toggle-mode">
+            <span id="toggleText">还没有账号？</span>
+            <a onclick="toggleMode()" id="toggleLink">立即注册</a>
+        </div>
+
+        <div style="text-align: center; margin-top: 24px;">
+            <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-size: 13px;">返回首页</a>
+        </div>
+    </div>
+
+    <script src="js/supabase-client.js"></script>
+    <script>
+        let isLogin = true;
+
+        async function handleAuth() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const btn = document.getElementById('authBtn');
+
+            if (!email || !password) {
+                showError('请填写所有字段');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = isLogin ? '登录中...' : '注册中...';
+            errorMsg.style.display = 'none';
+
+            try {
+                const { data, error } = isLogin
+                    ? await signIn(email, password)
+                    : await signUp(email, password);
+
+                if (error) throw error;
+
+                if (!isLogin) {
+                    alert('注册成功！请查收邮件确认开通账号。如果是简单测试，可直接使用登录。');
+                    toggleMode();
+                } else {
+                    window.location.href = 'admin.html';
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = isLogin ? '登录' : '注册';
+            }
+        }
+
+        function showError(msg) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+        }
+
+        function toggleMode() {
+            isLogin = !isLogin;
+            document.getElementById('authTitle').textContent = isLogin ? '登录' : '注册';
+            document.getElementById('authDesc').textContent = isLogin ? '登录以同步您的云端配置' : '创建一个新账号开始云同步';
+            document.getElementById('authBtn').textContent = isLogin ? '登录' : '注册';
+            document.getElementById('toggleText').textContent = isLogin ? '还没有账号？' : '已有账号？';
+            document.getElementById('toggleLink').textContent = isLogin ? '立即注册' : '返回登录';
+        }
+
+        // Check session on load
+        window.onload = async () => {
+            const session = await getSession();
+            if (session) window.location.href = 'admin.html';
+        };
+    </script>
+</body>
+
+</html>
