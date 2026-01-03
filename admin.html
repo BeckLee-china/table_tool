@@ -257,6 +257,46 @@
             height: 100%;
             color: var(--text-muted);
         }
+
+        /* Toast styles */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 9999;
+        }
+
+        .toast {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            background: var(--white);
+            color: var(--text);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 280px;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-success {
+            border-left-color: var(--success);
+        }
+
+        .toast-error {
+            border-left-color: var(--error);
+        }
     </style>
 </head>
 
@@ -329,7 +369,7 @@
     </div>
 
     <div style="position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: var(--text-muted); opacity: 0.5;">
-        Build: v1.1.2 (Latest)
+        Build: v1.1.3 (Latest)
     </div>
 
     <script src="js/supabase-client.js"></script>
@@ -389,33 +429,24 @@
 
             const modelSelect = document.getElementById('cfgModel');
 
-            // Core List
-            const commonModels = [
-                'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo',
-                'claude-3-5-sonnet', 'claude-3-5-haiku', 'claude-3-opus',
-                'deepseek-chat', 'deepseek-coder', 'gemini-1.5-pro', 'gemini-1.5-flash'
-            ];
+            // User requested no default models, just show what's saved
+            const models = currentConfig.models || [];
+            const activeModel = currentConfig.model_name || '';
 
-            // Merge existing and common, unique, sorted
-            const models = [...new Set([...(currentConfig.models || []), ...commonModels])].sort();
-            const activeModel = currentConfig.model_name || 'gpt-4o';
+            let optionsHtml = '';
 
-            modelSelect.innerHTML = models.map(m =>
-                `<option value="${m}" ${m === activeModel ? 'selected' : ''}>${m}</option>`
-            ).join('');
-
-            // Double check selection
-            modelSelect.value = activeModel;
-
-            // If still not set, force add it
-            if (activeModel && modelSelect.value !== activeModel) {
-                const opt = document.createElement('option');
-                opt.value = activeModel;
-                opt.textContent = activeModel;
-                opt.selected = true;
-                modelSelect.prepend(opt);
-                modelSelect.value = activeModel;
+            if (models.length > 0) {
+                optionsHtml = models.map(m =>
+                    `<option value="${m}" ${m === activeModel ? 'selected' : ''}>${m}</option>`
+                ).join('');
+            } else if (activeModel) {
+                optionsHtml = `<option value="${activeModel}" selected>${activeModel}</option>`;
+            } else {
+                optionsHtml = '<option value="">点击验证获取模型...</option>';
             }
+
+            modelSelect.innerHTML = optionsHtml;
+            modelSelect.value = activeModel;
 
             document.getElementById('btnSetActive').style.display = currentConfig.id ? 'block' : 'none';
             renderList();
@@ -427,7 +458,7 @@
             const btn = document.getElementById('btnValidate');
 
             if (!apiKey) {
-                alert('请先输入 API Key');
+                showToast('请先输入 API Key', 'error');
                 return;
             }
 
@@ -459,15 +490,15 @@
                             modelSelect.value = models[0];
                         }
 
-                        alert(`验证成功！已加载 ${models.length} 个模型。`);
+                        showToast(`验证成功！已加载 ${models.length} 个模型。`, 'success');
                     } else {
-                        alert('验证成功，但未检到可用模型。');
+                        showToast('验证成功，但未检到可用模型。', 'error');
                     }
                 } else {
                     throw new Error(`验证失败 (状态码: ${response.status})`);
                 }
             } catch (error) {
-                alert('验证出错: ' + error.message);
+                showToast('验证出错: ' + error.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.textContent = '验证';
@@ -492,10 +523,15 @@
 
             const { data, error } = await saveConfig(updated);
             if (error) {
-                alert('保存失败: ' + error.message);
+                showToast('保存失败: ' + error.message, 'error');
             } else {
-                alert('保存成功！已同步到云端。');
-                loadConfigs();
+                showToast('保存成功！已同步到云端。', 'success');
+                // Update local memory
+                const idx = configs.findIndex(c => c.id === data[0].id);
+                if (idx !== -1) configs[idx] = data[0];
+                else configs.push(data[0]);
+                currentConfig = { ...data[0] };
+                renderList();
             }
             btn.disabled = false;
             btn.textContent = originalText;
@@ -505,9 +541,9 @@
             if (!currentConfig.id) return;
             const { error } = await setActiveConfig(currentConfig.id);
             if (error) {
-                alert('设置失败: ' + error.message);
+                showToast('设置失败: ' + error.message, 'error');
             } else {
-                alert('已切换为当前使用配置！');
+                showToast('已切换为当前使用配置！', 'success');
                 loadConfigs();
             }
         }
@@ -522,13 +558,39 @@
 
             const { error } = await deleteConfig(currentConfig.id);
             if (error) {
-                alert('删除失败: ' + error.message);
+                showToast('删除失败: ' + error.message, 'error');
             } else {
+                showToast('删除成功。', 'success');
                 currentConfig = null;
                 document.getElementById('editor').style.display = 'none';
                 document.getElementById('emptyPanel').style.display = 'flex';
                 loadConfigs();
             }
+        }
+
+        // Toast Helper
+        function showToast(message, type = 'primary') {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
         async function userLogout() {
