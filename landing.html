@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公众号表格生成器 - 让你的数据更精美</title>
+    <meta name="description" content="一款专为公众号设计的表格配图生成工具，支持多种配色方案、自定义样式、一键导出高清图片。">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* ===== CSS Variables ===== */
+        :root {
+            --primary: #2563EB;
+            --primary-dark: #1D4ED8;
+            --secondary: #3B82F6;
+            --cta: #F97316;
+            --cta-dark: #EA580C;
+            --bg: #F8FAFC;
+            --bg-dark: #0F172A;
+            --text: #1E293B;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+            --white: #FFFFFF;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== Reset & Base ===== */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ===== Utility Classes ===== */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-cta {
+            background: linear-gradient(135deg, var(--cta) 0%, #FB923C 100%);
+            color: var(--white);
+            box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .section-title {
+            font-size: clamp(32px, 5vw, 48px);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 48px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== Animations ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .animate-delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .animate-delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .animate-delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .animate-delay-4 {
+            animation-delay: 0.4s;
+        }
+
+        /* ===== Navigation ===== */
+        .navbar {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            z-index: 1000;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .navbar-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .navbar-logo svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--white);
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .navbar-link {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .navbar-link:hover {
+            color: var(--primary);
+        }
+
+        .navbar-cta {
+            padding: 10px 24px;
+            font-size: 14px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text);
+        }
+
+        /* ===== Hero Section ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+        }
+
+        .hero-text {
+            opacity: 0;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--primary);
+            margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: clamp(40px, 6vw, 64px);
+            margin-bottom: 24px;
+            line-height: 1.1;
+        }
+
+        .hero-description {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 500px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .hero-visual {
+            position: relative;
+            opacity: 0;
+        }
+
+        .hero-mockup {
+            position: relative;
+            padding: 24px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .hero-mockup-inner {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .mockup-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #7C3AED 100%);
+            padding: 16px 24px;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .mockup-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .mockup-table th {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .mockup-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .mockup-table tr:nth-child(even) {
+            background: #F8FAFC;
+        }
+
+        /* ===== Features Section ===== */
+        .features {
+            padding: 100px 0;
+            background: var(--white);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            padding: 32px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--white);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: transparent;
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .feature-icon-1 {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+
+        .feature-icon-2 {
+            background: rgba(124, 58, 237, 0.1);
+            color: #7C3AED;
+        }
+
+        .feature-icon-3 {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10B981;
+        }
+
+        .feature-icon-4 {
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--cta);
+        }
+
+        .feature-icon svg {
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-description {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* ===== How It Works Section ===== */
+        .how-it-works {
+            padding: 100px 0;
+            background: linear-gradient(180deg, var(--bg) 0%, var(--white) 100%);
+        }
+
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 48px;
+            position: relative;
+        }
+
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 15%;
+            right: 15%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), #7C3AED);
+            opacity: 0.3;
+        }
+
+        .step-card {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--white);
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-1 .step-number {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .step-2 .step-number {
+            background: linear-gradient(135deg, var(--secondary) 0%, #7C3AED 100%);
+        }
+
+        .step-3 .step-number {
+            background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+        }
+
+        .step-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .step-description {
+            font-size: 15px;
+            color: var(--text-muted);
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        /* ===== Demo Section ===== */
+        .demo {
+            padding: 100px 0;
+            background: var(--white);
+        }
+
+        .demo-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .demo-card {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .demo-card:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .demo-card-header {
+            padding: 16px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--white);
+        }
+
+        .demo-card-1 .demo-card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .demo-card-2 .demo-card-header {
+            background: linear-gradient(135deg, #CC785C 0%, #D4876F 100%);
+        }
+
+        .demo-card-3 .demo-card-header {
+            background: linear-gradient(135deg, #000000 0%, #434343 100%);
+        }
+
+        .demo-card-4 .demo-card-header {
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+        }
+
+        .demo-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .demo-table th,
+        .demo-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .demo-table th {
+            background: inherit;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .demo-card-1 .demo-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .demo-card-2 .demo-table th {
+            background: linear-gradient(135deg, #CC785C 0%, #D4876F 100%);
+        }
+
+        .demo-card-3 .demo-table th {
+            background: linear-gradient(135deg, #000000 0%, #434343 100%);
+        }
+
+        .demo-card-4 .demo-table th {
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+        }
+
+        .demo-table tr:nth-child(even) {
+            background: #FAFAFA;
+        }
+
+        /* ===== CTA Section ===== */
+        .cta-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1E293B 100%);
+            text-align: center;
+        }
+
+        .cta-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cta-title {
+            font-size: clamp(32px, 5vw, 48px);
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+
+        .cta-description {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            padding: 40px 0;
+            background: var(--bg-dark);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .footer-copyright {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-text {
+                order: 1;
+            }
+
+            .hero-visual {
+                order: 2;
+            }
+
+            .hero-description {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .steps-container {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+
+            .steps-container::before {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .navbar {
+                top: 12px;
+                left: 12px;
+                right: 12px;
+                padding: 12px 16px;
+            }
+
+            .hero {
+                padding: 100px 0 60px;
+            }
+
+            .features,
+            .how-it-works,
+            .demo,
+            .cta-section {
+                padding: 60px 0;
+            }
+
+            .container {
+                padding: 0 16px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .demo-showcase {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== Reduced Motion ===== */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            html {
+                scroll-behavior: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar glass-card">
+        <a href="#" class="navbar-brand">
+            <div class="navbar-logo">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+            </div>
+            表格生成器
+        </a>
+        <div class="navbar-links">
+            <a href="#features" class="navbar-link">功能特点</a>
+            <a href="#how-it-works" class="navbar-link">使用方法</a>
+            <a href="#demo" class="navbar-link">样式预览</a>
+            <a href="index.html" class="btn btn-primary navbar-cta">立即使用</a>
+        </div>
+        <button class="mobile-menu-btn" aria-label="Toggle menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text animate-fade-in">
+                    <div class="hero-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                        专为公众号设计
+                    </div>
+                    <h1 class="hero-title">
+                        让你的数据<br><span class="gradient-text">更加精美</span>
+                    </h1>
+                    <p class="hero-description">
+                        一款强大的表格配图生成工具，支持多种配色方案、自定义样式，一键导出高清图片。让你的公众号内容更具专业感。
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="index.html" class="btn btn-cta">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polygon points="5 3 19 12 5 21 5 3" />
+                            </svg>
+                            免费开始使用
+                        </a>
+                        <a href="#features" class="btn btn-outline">了解更多</a>
+                    </div>
+                </div>
+                <div class="hero-visual animate-fade-in animate-delay-2">
+                    <div class="hero-mockup">
+                        <div class="hero-mockup-inner glass-card">
+                            <div class="mockup-header">实时预览效果</div>
+                            <table class="mockup-table">
+                                <thead>
+                                    <tr>
+                                        <th>产品名称</th>
+                                        <th>月销量</th>
+                                        <th>好评率</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>智能手表 Pro</td>
+                                        <td>12,580</td>
+                                        <td>98.5%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>无线耳机 Max</td>
+                                        <td>8,920</td>
+                                        <td>97.2%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>便携充电宝</td>
+                                        <td>15,340</td>
+                                        <td>99.1%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">强大的<span class="gradient-text">功能特点</span></h2>
+            <p class="section-subtitle">我们为你提供最专业的表格生成工具，让数据展示更加精美、高效</p>
+
+            <div class="features-grid">
+                <div class="feature-card animate-fade-in">
+                    <div class="feature-icon feature-icon-1">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">多种配色方案</h3>
+                    <p class="feature-description">内置科技紫、苹果黑、深海蓝、Claude风等多种精美配色，满足不同风格需求。</p>
+                </div>
+
+                <div class="feature-card animate-fade-in animate-delay-1">
+                    <div class="feature-icon feature-icon-2">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 19l7-7 3 3-7 7-3-3z" />
+                            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+                            <path d="M2 2l7.586 7.586" />
+                            <circle cx="11" cy="11" r="2" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">自定义样式</h3>
+                    <p class="feature-description">支持自定义字体、表格样式、字号大小，还可以拖动调整列宽，精确控制每个细节。</p>
+                </div>
+
+                <div class="feature-card animate-fade-in animate-delay-2">
+                    <div class="feature-icon feature-icon-3">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">一键导出</h3>
+                    <p class="feature-description">支持高清图片导出，可添加自定义水印，支持多种尺寸倍率，完美适配公众号。</p>
+                </div>
+
+                <div class="feature-card animate-fade-in animate-delay-3">
+                    <div class="feature-icon feature-icon-4">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">实时预览</h3>
+                    <p class="feature-description">所见即所得的编辑体验，修改样式立即生效，让你快速找到最满意的效果。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">简单<span class="gradient-text">三步</span>完成</h2>
+            <p class="section-subtitle">无需复杂操作，轻松生成精美表格配图</p>
+
+            <div class="steps-container">
+                <div class="step-card step-1">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">上传数据</h3>
+                    <p class="step-description">支持 Excel、CSV 文件上传，或直接粘贴 Markdown 表格数据</p>
+                </div>
+
+                <div class="step-card step-2">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">选择样式</h3>
+                    <p class="step-description">挑选心仪的配色方案，自定义字体、表格样式和字号大小</p>
+                </div>
+
+                <div class="step-card step-3">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">导出图片</h3>
+                    <p class="step-description">一键导出高清图片，可添加水印，直接用于公众号文章</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo" id="demo">
+        <div class="container">
+            <h2 class="section-title">精美的<span class="gradient-text">样式预览</span></h2>
+            <p class="section-subtitle">多种配色方案，总有一款适合你</p>
+
+            <div class="demo-showcase">
+                <div class="demo-card demo-card-1">
+                    <div class="demo-card-header">科技紫</div>
+                    <table class="demo-table">
+                        <thead>
+                            <tr>
+                                <th>指标</th>
+                                <th>本月</th>
+                                <th>环比</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>访问量</td>
+                                <td>125,890</td>
+                                <td>+15.2%</td>
+                            </tr>
+                            <tr>
+                                <td>新增用户</td>
+                                <td>3,580</td>
+                                <td>+8.6%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="demo-card demo-card-2">
+                    <div class="demo-card-header">Claude 风</div>
+                    <table class="demo-table">
+                        <thead>
+                            <tr>
+                                <th>指标</th>
+                                <th>本月</th>
+                                <th>环比</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>访问量</td>
+                                <td>125,890</td>
+                                <td>+15.2%</td>
+                            </tr>
+                            <tr>
+                                <td>新增用户</td>
+                                <td>3,580</td>
+                                <td>+8.6%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="demo-card demo-card-3">
+                    <div class="demo-card-header">苹果黑</div>
+                    <table class="demo-table">
+                        <thead>
+                            <tr>
+                                <th>指标</th>
+                                <th>本月</th>
+                                <th>环比</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>访问量</td>
+                                <td>125,890</td>
+                                <td>+15.2%</td>
+                            </tr>
+                            <tr>
+                                <td>新增用户</td>
+                                <td>3,580</td>
+                                <td>+8.6%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="demo-card demo-card-4">
+                    <div class="demo-card-header">深海蓝</div>
+                    <table class="demo-table">
+                        <thead>
+                            <tr>
+                                <th>指标</th>
+                                <th>本月</th>
+                                <th>环比</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>访问量</td>
+                                <td>125,890</td>
+                                <td>+15.2%</td>
+                            </tr>
+                            <tr>
+                                <td>新增用户</td>
+                                <td>3,580</td>
+                                <td>+8.6%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">准备好提升你的内容了吗？</h2>
+                <p class="cta-description">立即开始使用，让你的公众号表格更加精美专业</p>
+                <div class="cta-buttons">
+                    <a href="index.html" class="btn btn-cta">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3" />
+                        </svg>
+                        免费开始使用
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="navbar-logo">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="3" y="3" width="7" height="7" rx="1" />
+                            <rect x="14" y="3" width="7" height="7" rx="1" />
+                            <rect x="3" y="14" width="7" height="7" rx="1" />
+                            <rect x="14" y="14" width="7" height="7" rx="1" />
+                        </svg>
+                    </div>
+                    公众号表格生成器
+                </div>
+                <p class="footer-copyright">© 2026 表格生成器. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe hero elements
+        document.querySelectorAll('.hero-text, .hero-visual').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
+            observer.observe(el);
+        });
+
+        // Observe feature cards
+        document.querySelectorAll('.feature-card').forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = `opacity 0.6s ease-out ${index * 0.1}s, transform 0.6s ease-out ${index * 0.1}s`;
+            observer.observe(el);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Navbar background on scroll
+        const navbar = document.querySelector('.navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+                navbar.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+            } else {
+                navbar.style.background = 'rgba(255, 255, 255, 0.85)';
+                navbar.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.08)';
+            }
+        });
+    </script>
+</body>
+
+</html>
