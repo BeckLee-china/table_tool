@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Word排版助手 - 一键生成Word格式文档</title>
+    <meta name="description" content="输入格式要求和内容需求，AI自动生成Word兼容的排版内容，复制即可粘贴">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* ===== CSS Variables ===== */
+        :root {
+            --primary: #2563EB;
+            --primary-dark: #1D4ED8;
+            --secondary: #3B82F6;
+            --accent: #7C3AED;
+            --success: #10B981;
+            --success-light: #D1FAE5;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --error-light: #FEE2E2;
+            --cta: #F97316;
+            --bg: #F8FAFC;
+            --bg-white: #FFFFFF;
+            --text: #1E293B;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+            --border-dark: #CBD5E1;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --glow: rgba(37, 99, 235, 0.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== Reset & Base ===== */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+        }
+
+        /* ===== Background Decoration ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* ===== Layout ===== */
+        .app-container {
+            display: grid;
+            grid-template-columns: 480px 1fr;
+            gap: 24px;
+            padding: 24px;
+            min-height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding-top: 100px;
+            /* Added padding for fixed navbar */
+        }
+
+
+        /* ===== Header ===== */
+        .app-header {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 28px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+            display: none;
+            /* Hidden used original header, replacing with fixed navbar */
+        }
+
+        .navbar {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            z-index: 1000;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .navbar-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 16px var(--glow);
+        }
+
+        .navbar-logo svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .navbar-link {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: var(--transition);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .navbar-link:hover {
+            color: var(--primary);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text);
+            fill: none;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .navbar {
+                top: 12px;
+                left: 12px;
+                right: 12px;
+                padding: 12px 16px;
+            }
+
+            .app-container {
+                padding-top: 80px;
+            }
+        }
+
+
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px var(--glow);
+        }
+
+        .logo-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+
+        .logo-text h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-text p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* ===== Card Component ===== */
+        .card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.03) 0%, rgba(124, 58, 237, 0.02) 100%);
+        }
+
+        .card-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .card-header.clickable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card-header.clickable:hover {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.06) 0%, rgba(124, 58, 237, 0.04) 100%);
+        }
+
+        .collapse-arrow {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+            color: var(--text-muted);
+        }
+
+        .card.collapsed .collapse-arrow {
+            transform: rotate(-90deg);
+        }
+
+        .card.collapsed .card-content {
+            display: none;
+        }
+
+        .card.collapsed {
+            box-shadow: none;
+        }
+
+        .card-header-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-header-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--primary);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .card-content {
+            padding: 24px;
+        }
+
+        /* ===== Layout Panels ===== */
+        .input-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ===== Right Panel ===== */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .content-card .content-input {
+            min-height: 120px;
+        }
+
+        /* ===== Form Elements ===== */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .form-label .hint {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .form-group textarea,
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            margin-top: 4px;
+        }
+
+        textarea,
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--bg-white);
+            color: var(--text);
+            transition: var(--transition);
+            line-height: 1.6;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            cursor: pointer;
+        }
+
+        textarea {
+            resize: vertical;
+            overflow-y: auto;
+            field-sizing: content;
+            /* Modern browsers auto-sizing */
+        }
+
+        textarea:hover,
+        input[type="text"]:hover,
+        input[type="password"]:hover {
+            border-color: var(--border-dark);
+        }
+
+        textarea:focus,
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--glow);
+        }
+
+        textarea::placeholder,
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .format-input {
+            min-height: 180px;
+        }
+
+        .content-input {
+            min-height: 140px;
+        }
+
+        /* ===== API Settings ===== */
+        .api-settings {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .api-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .api-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 4px 16px var(--glow);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #34D399 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-cta {
+            background: linear-gradient(135deg, var(--cta) 0%, #FB923C 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(249, 115, 22, 0.2);
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-outline {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .btn-outline:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            border-radius: var(--radius-md);
+        }
+
+        /* ===== Loading State ===== */
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-outline .spinner {
+            border-color: rgba(37, 99, 235, 0.1);
+            border-top-color: var(--primary);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== Preview Panel ===== */
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-container {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+            color: #1a1a1a;
+            padding: 50px 60px;
+            border-radius: 0;
+            min-height: 400px;
+        }
+
+        .preview-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 400px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .preview-empty .icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-empty .icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: var(--primary);
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .preview-empty h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .preview-empty p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 12px;
+            padding: 20px 24px;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+        }
+
+        .preview-actions .btn {
+            flex: 1;
+        }
+
+        /* ===== Example Tags ===== */
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .example-tag {
+            padding: 8px 14px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .example-tag:hover {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        /* ===== Toast Notification ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 16px 28px;
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            border-color: var(--success);
+            background: var(--success-light);
+        }
+
+        .toast.error {
+            border-color: var(--error);
+            background: var(--error-light);
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toast.success .toast-icon svg {
+            stroke: var(--success);
+        }
+
+        .toast.error .toast-icon svg {
+            stroke: var(--error);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .input-panel,
+            .right-panel,
+            .preview-panel {
+                max-height: none;
+            }
+
+            .app-header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .preview-container {
+                padding: 30px 24px;
+            }
+
+            .preview-actions {
+                flex-direction: column;
+            }
+
+            .card-content {
+                padding: 16px;
+            }
+        }
+
+        /* ===== Custom Scrollbar ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-dark);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ===== Reduced Motion ===== */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar glass-card">
+        <a href="index.html" class="navbar-brand">
+            <div class="navbar-logo">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+            </div>
+            北洛工具箱
+        </a>
+        <div class="navbar-links">
+            <a href="index.html" class="navbar-link">首页</a>
+            <a href="table_tool.html" class="navbar-link">表格生成器</a>
+            <a href="word-html.html" class="navbar-link" style="color: var(--primary);">AI Word排版</a>
+        </div>
+        <button class="mobile-menu-btn">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 12h18M3 6h18M3 18h18" />
+            </svg>
+        </button>
+    </nav>
+
+    <div class="app-container">
+
+
+        <!-- Input Panel (Left Side) -->
+        <aside class="input-panel">
+            <!-- Format Requirements -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-header-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                                <line x1="12" y1="22.08" x2="12" y2="12" />
+                            </svg>
+                        </span>
+                        格式要求
+                    </h2>
+                </div>
+                <div class="card-content">
+                    <div class="form-group">
+                        <label class="form-label">
+                            描述你需要的排版格式
+                            <span class="hint">（字体、字号、对齐、缩进等）</span>
+                        </label>
+                        <textarea id="formatInput" class="format-input" placeholder="例如：
+标题：宋体三号加粗居中
+一级标题：宋体小三加粗
+二级标题：宋体四号加粗  
+正文：宋体小四，首行缩进2字符，1.5倍行距"></textarea>
+                        <div class="examples">
+                            <span class="example-tag" onclick="useFormatExample('academic')">学术论文</span>
+                            <span class="example-tag" onclick="useFormatExample('official')">公文报告</span>
+                            <span class="example-tag" onclick="useFormatExample('business')">商务文档</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Settings - 简化为提示 -->
+            <div class="card"
+                style="background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); border: 1px solid #C7D2FE;">
+                <div class="card-content"
+                    style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </svg>
+                        <span id="apiStatusText" style="font-size: 14px; color: #4338CA;">正在检查 API 配置...</span>
+                    </div>
+                    <a href="settings.html" class="btn btn-outline btn-sm"
+                        style="padding: 8px 16px; font-size: 13px;">前往设置</a>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button class="btn btn-cta generate-btn" id="generateBtn" onclick="generateContent()">
+                <span class="btn-text">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg>
+                    生成排版内容
+                </span>
+                <span class="loading" id="loadingIndicator">
+                    <span class="spinner"></span>
+                    <span>AI生成中...</span>
+                </span>
+            </button>
+        </aside>
+
+        <!-- Right Panel (Content + Preview) -->
+        <div class="right-panel">
+            <!-- Content Requirements -->
+            <div class="card content-card" id="contentCard">
+                <div class="card-header clickable" onclick="toggleCard('contentCard')">
+                    <h2>
+                        <span class="card-header-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                        </span>
+                        内容需求
+                    </h2>
+                    <svg class="collapse-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="card-content">
+                    <div class="form-group">
+                        <label class="form-label">
+                            告诉AI你需要写什么内容
+                        </label>
+                        <textarea id="contentInput" class="content-input" placeholder="例如：
+帮我写一篇关于人工智能在教育领域应用的研究报告，包含研究背景、研究意义、主要观点和结论。字数约1000字。"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <section class="card preview-panel">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-header-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </span>
+                        生成结果
+                    </h2>
+                    <span style="font-size: 12px; color: var(--text-muted);">复制后直接粘贴到Word</span>
+                </div>
+                <div class="preview-container" id="previewContainer">
+                    <div class="preview-empty">
+                        <div class="icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                                <path d="M2 17l10 5 10-5" />
+                                <path d="M2 12l10 5 10-5" />
+                            </svg>
+                        </div>
+                        <h3>等待生成</h3>
+                        <p>填写格式要求和内容需求，点击生成按钮</p>
+                    </div>
+                </div>
+                <div class="preview-actions">
+                    <button class="btn btn-success" onclick="copyRichText()" id="copyBtn" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                        复制富文本到Word
+                    </button>
+                    <button class="btn btn-outline" onclick="copyHtmlCode()" id="copyHtmlBtn" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="16 18 22 12 16 6" />
+                            <polyline points="8 6 2 12 8 18" />
+                        </svg>
+                        复制HTML
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon" id="toastIcon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+        </span>
+        <span id="toastMessage">复制成功！</span>
+    </div>
+
+    <script>
+        // ========== Initialization: Check Global Config ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            const config = JSON.parse(localStorage.getItem('beiluo_config') || '{}');
+            const statusText = document.getElementById('apiStatusText');
+
+            if (config.apiKey) {
+                statusText.textContent = `✅ 已配置 (模型: ${config.modelName || '默认'})`;
+                statusText.style.color = '#059669'; // Green
+            } else {
+                statusText.textContent = '⚠️ 未配置 API Key，请先前往设置';
+                statusText.style.color = '#DC2626'; // Red
+            }
+        });
+
+        // ========== Format Examples ==========
+        const formatExamples = {
+            academic: `标题：宋体三号(16pt)加粗居中
+一级标题：宋体小三(15pt)加粗
+二级标题：宋体四号(14pt)加粗
+正文：宋体小四(12pt)，首行缩进2字符，1.5倍行距`,
+            official: `标题：方正小标宋二号(22pt)加粗居中
+一级标题：黑体三号(16pt)加粗
+二级标题：楷体三号(16pt)加粗
+正文：仿宋三号(16pt)，首行缩进2字符，固定行距28磅`,
+            business: `标题：微软雅黑小二(18pt)加粗居中
+一级标题：微软雅黑四号(14pt)加粗
+二级标题：微软雅黑小四(12pt)加粗
+正文：微软雅黑五号(10.5pt)，首行缩进2字符，1.5倍行距`
+        };
+
+        function useFormatExample(type) {
+            const input = document.getElementById('formatInput');
+            input.value = formatExamples[type];
+            // Manually trigger resize after setting value
+            autoResizeTextarea(input);
+        }
+
+        // ========== API Config Persistence ==========
+        function loadApiConfig() {
+            const saved = localStorage.getItem('wordAiConfig');
+            if (saved) {
+                const config = JSON.parse(saved);
+                document.getElementById('apiBase').value = config.apiBase || 'https://api.openai.com/v1';
+                document.getElementById('apiKey').value = config.apiKey || '';
+
+                const modelSelect = document.getElementById('modelName');
+                if (config.models && config.models.length > 0) {
+                    modelSelect.innerHTML = config.models.map(m =>
+                        `<option value="${m}" ${m === config.modelName ? 'selected' : ''}>${m}</option>`
+                    ).join('');
+                } else if (config.modelName) {
+                    modelSelect.innerHTML = `<option value="${config.modelName}" selected>${config.modelName}</option>`;
+                }
+            }
+        }
+
+        function saveApiConfig() {
+            if (document.getElementById('saveApiKey').checked) {
+                const modelSelect = document.getElementById('modelName');
+                const models = Array.from(modelSelect.options).map(opt => opt.value).filter(val => val !== "");
+                const config = {
+                    apiBase: document.getElementById('apiBase').value.trim(),
+                    apiKey: document.getElementById('apiKey').value.trim(),
+                    modelName: modelSelect.value,
+                    models: models
+                };
+                localStorage.setItem('wordAiConfig', JSON.stringify(config));
+            }
+        }
+
+        // ========== Test API Config ==========
+        async function testAndSaveConfig() {
+            const apiBase = document.getElementById('apiBase').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const modelName = document.getElementById('modelName').value.trim();
+
+            if (!apiKey) {
+                showToast('请先输入 API Key', 'error');
+                return;
+            }
+
+            // Show loading
+            const btn = document.getElementById('testApiBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const loading = document.getElementById('testLoadingIndicator');
+            btn.disabled = true;
+            btnText.style.opacity = '0.5';
+            loading.classList.add('show');
+
+            try {
+                const cleanBase = apiBase.replace(/\/+$/, '');
+
+                // Test connection and Fetch Models
+                const response = await fetch(`${cleanBase}/models`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`
+                    }
+                });
+
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type') || '';
+                    if (!contentType.includes('application/json')) {
+                        const text = await response.text();
+                        console.group('API 异常响应 (检测阶段)');
+                        console.log('状态码:', response.status);
+                        console.log('内容类型:', contentType);
+                        console.log('响应预览:', text.substring(0, 500));
+                        console.groupEnd();
+
+                        let hint = '服务器返回了网页而不是 API 数据。';
+                        if (!apiBase.toLowerCase().endsWith('/v1')) {
+                            hint += ' 检测到你的 URL 没有以 /v1 结尾，请在末尾加上 /v1 重试 (例如: https://api.xxx.com/v1)';
+                        } else {
+                            hint += ' 请检查 API Base URL 是否填写正确。';
+                        }
+                        throw new Error(hint);
+                    }
+
+                    const data = await response.json();
+                    let models = [];
+
+                    if (data.data && Array.isArray(data.data)) {
+                        // Extract model IDs, prioritize common ones
+                        models = data.data.map(m => m.id).sort((a, b) => {
+                            const priorities = ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo', 'claude-3'];
+                            const aIdx = priorities.findIndex(p => a.includes(p));
+                            const bIdx = priorities.findIndex(p => b.includes(p));
+                            if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                            if (aIdx !== -1) return -1;
+                            if (bIdx !== -1) return 1;
+                            return a.localeCompare(b);
+                        });
+                    }
+
+                    if (models.length > 0) {
+                        const modelSelect = document.getElementById('modelName');
+                        const currentModel = modelSelect.value;
+                        modelSelect.innerHTML = models.map(m =>
+                            `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`
+                        ).join('');
+
+                        // Initialize: Load settings locally to visual inputs if needed, or just leave them blank
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const config = JSON.parse(localStorage.getItem('beiluo_config') || '{}');
+                            if (config.apiKey) {
+                                document.getElementById('apiKey').placeholder = "已使用全局配置 (可在设置页修改)";
+                            }
+                            if (config.apiBase) {
+                                document.getElementById('apiBase').value = config.apiBase;
+                            }
+                            if (config.modelName) {
+                                // Check if model exists in dropdown, if not add it
+                                const select = document.getElementById('modelName');
+                                let found = false;
+                                for (let i = 0; i < select.options.length; i++) {
+                                    if (select.options[i].value === config.modelName) {
+                                        select.selectedIndex = i;
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    const opt = document.createElement('option');
+                                    opt.value = config.modelName;
+                                    opt.text = config.modelName;
+                                    opt.selected = true;
+                                    select.add(opt);
+                                }
+                            }
+                        });
+                        showToast(`检测成功！已加载 ${models.length} 个模型`, 'success');
+                    } else {
+                        throw new Error('未获取到可用模型列表');
+                    }
+                } else {
+                    const responseClone = response.clone();
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const error = await response.json();
+                        throw new Error(error.error?.message || `请求失败: ${response.status}`);
+                    } else {
+                        const text = await responseClone.text();
+                        console.group('API 错误详情 (检测阶段)');
+                        console.log('状态码:', response.status);
+                        console.log('响应:', text.substring(0, 500));
+                        console.groupEnd();
+                        throw new Error(`服务器返回了非 JSON 响应。状态码: ${response.status}`);
+                    }
+                }
+            } catch (error) {
+                console.error('API Test Error:', error);
+                showToast(`检测失败: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.style.opacity = '1';
+                loading.classList.remove('show');
+            }
+        }
+
+        // ========== Generate Content ==========
+        async function generateContent() {
+            const formatReq = document.getElementById('formatInput').value.trim();
+            const contentReq = document.getElementById('contentInput').value.trim();
+
+            // Get Config from Global Settings
+            const globalConfig = JSON.parse(localStorage.getItem('beiluo_config') || '{}');
+            const apiBase = globalConfig.apiBase || 'https://api.openai.com/v1';
+            const apiKey = globalConfig.apiKey;
+            const modelName = globalConfig.modelName || 'gpt-3.5-turbo';
+
+            if (!apiKey) {
+                alert('请先前往"设置"页面配置 API Key');
+                return;
+            }
+
+            // Validation
+            if (!formatReq) {
+                showToast('请填写格式要求！', 'error');
+                return;
+            }
+            if (!contentReq) {
+                showToast('请填写内容需求！', 'error');
+                return;
+            }
+
+            // Show loading
+            const generateBtn = document.getElementById('generateBtn');
+            const btnText = generateBtn.querySelector('.btn-text');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            generateBtn.disabled = true;
+            btnText.style.display = 'none';
+            loadingIndicator.classList.add('show');
+
+            try {
+                const cleanBase = apiBase.replace(/\/+$/, '');
+
+                const systemPrompt = `你是一个专业的Word文档排版助手。用户会提供格式要求和内容需求，你需要生成符合要求的HTML代码。
+
+**核心要求：**
+1. 必须使用行内样式(inline CSS)，把所有样式直接写在style属性里
+2. 字号必须使用pt单位（如12pt, 14pt, 16pt等）
+3. 支持的中文字体：宋体用"SimSun, 宋体, serif"，黑体用"SimHei, 黑体, sans-serif"，楷体用"KaiTi, 楷体, serif"，仿宋用"FangSong, 仿宋, serif"，微软雅黑用"Microsoft YaHei, 微软雅黑, sans-serif"
+4. 首行缩进用text-indent: 2em
+5. 行距用line-height属性
+6. 不要使用<style>标签或外部CSS
+7. 不要添加任何HTML文档结构（如<!DOCTYPE>, <html>, <head>, <body>等），直接输出内容元素
+8. 表格如需居中，使用align="center"属性
+
+**字号对照：**
+初号=42pt, 小初=36pt, 一号=26pt, 小一=24pt, 二号=22pt, 小二=18pt, 三号=16pt, 小三=15pt, 四号=14pt, 小四=12pt, 五号=10.5pt, 小五=9pt
+
+只输出HTML代码，不要有任何解释或markdown代码块标记。`;
+
+                const userPrompt = `**格式要求：**
+${formatReq}
+
+**内容需求：**
+${contentReq}
+
+请根据以上要求生成带有完整行内样式的HTML内容。`;
+
+                const response = await fetch(`${cleanBase}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: modelName,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: userPrompt }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 4000
+                    })
+                });
+
+                if (!response.ok) {
+                    const responseClone = response.clone();
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const error = await response.json();
+                        throw new Error(error.error?.message || `API请求失败: ${response.status}`);
+                    } else {
+                        const text = await responseClone.text();
+                        console.group('API 错误详情 (生成阶段)');
+                        console.log('状态码:', response.status);
+                        console.log('内容类型:', contentType);
+                        console.log('原始响应:', text.substring(0, 1000));
+                        console.groupEnd();
+                        throw new Error(`API 返回了非 JSON 数据。这通常是由于 API 路径填错或服务商拦截了请求内容。请按 F12 查看控制台详细信息。`);
+                    }
+                }
+
+                const contentType = response.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('API 异常响应:', text.substring(0, 1000));
+                    throw new Error(`预期收到 JSON，但实际收到 ${contentType || '未知格式'}。请检查 API 地址是否正确（通常应以 /v1 结尾）。`);
+                }
+
+                const data = await response.json();
+                let htmlContent = data.choices[0].message.content;
+
+                // Clean up any markdown code blocks if present
+                htmlContent = htmlContent.replace(/```html\n?/gi, '').replace(/```\n?/g, '').trim();
+
+                // Render preview
+                document.getElementById('previewContainer').innerHTML = htmlContent;
+
+                // Enable copy buttons
+                document.getElementById('copyBtn').disabled = false;
+                document.getElementById('copyHtmlBtn').disabled = false;
+
+                // Auto-collapse content card to focus on result
+                const contentCard = document.getElementById('contentCard');
+                if (contentCard && !contentCard.classList.contains('collapsed')) {
+                    contentCard.classList.add('collapsed');
+                }
+
+                showToast('生成成功！已自动折叠输入框以展示结果', 'success');
+
+            } catch (error) {
+                console.error('Generation error:', error);
+                showToast(`生成失败: ${error.message}`, 'error');
+            } finally {
+                generateBtn.disabled = false;
+                btnText.style.display = 'flex';
+                loadingIndicator.classList.remove('show');
+            }
+        }
+
+        // ========== UI Interactions ==========
+        function toggleCard(cardId) {
+            const card = document.getElementById(cardId);
+            if (card) {
+                card.classList.toggle('collapsed');
+            }
+        }
+
+        // ========== Copy Rich Text ==========
+        async function copyRichText() {
+            const container = document.getElementById('previewContainer');
+            const html = container.innerHTML;
+
+            if (!html || html.includes('preview-empty')) {
+                showToast('没有可复制的内容！', 'error');
+                return;
+            }
+
+            try {
+                const blob = new Blob([html], { type: 'text/html' });
+                const clipboardItem = new ClipboardItem({
+                    'text/html': blob,
+                    'text/plain': new Blob([container.innerText], { type: 'text/plain' })
+                });
+
+                await navigator.clipboard.write([clipboardItem]);
+                showToast('已复制！直接在Word中粘贴即可', 'success');
+            } catch (err) {
+                // Fallback
+                const range = document.createRange();
+                range.selectNodeContents(container);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+
+                try {
+                    document.execCommand('copy');
+                    selection.removeAllRanges();
+                    showToast('已复制！直接在Word中粘贴即可', 'success');
+                } catch (e) {
+                    showToast('复制失败，请手动选择内容复制', 'error');
+                }
+            }
+        }
+
+        // ========== Copy HTML Code ==========
+        async function copyHtmlCode() {
+            const container = document.getElementById('previewContainer');
+            const html = container.innerHTML;
+
+            if (!html || html.includes('preview-empty')) {
+                showToast('没有可复制的内容！', 'error');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(html);
+                showToast('HTML代码已复制！', 'success');
+            } catch (err) {
+                showToast('复制失败', 'error');
+            }
+        }
+
+        // ========== Toast ==========
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMessage');
+
+            // Update icon based on type
+            if (type === 'success') {
+                icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>`;
+            } else if (type === 'error') {
+                icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>`;
+            }
+
+            msg.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // ========== Initialize ==========
+        loadApiConfig();
+
+        // ========== Auto-resize Textareas ==========
+        function autoResizeTextarea(textarea) {
+            if (!textarea) return;
+            // Reset height to auto to get correct scrollHeight
+            textarea.style.height = 'auto';
+            // Set to scrollHeight to ensure "fully displayed"
+            const newHeight = textarea.scrollHeight;
+            textarea.style.height = (newHeight + 2) + 'px'; // +2 for border buffer
+        }
+
+        // Apply to all textareas
+        function initializeAutoResize() {
+            const textareas = document.querySelectorAll('textarea');
+            textareas.forEach(textarea => {
+                // Initial resize
+                autoResizeTextarea(textarea);
+
+                // Resize on input
+                textarea.addEventListener('input', () => autoResizeTextarea(textarea));
+            });
+        }
+
+        // Sync all when DOM loads
+        window.addEventListener('load', initializeAutoResize);
+        // Also call for immediate effect
+        initializeAutoResize();
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            document.querySelectorAll('textarea').forEach(autoResizeTextarea);
+        });
+    </script>
+</body>
+
+</html>
