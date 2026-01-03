@@ -296,7 +296,10 @@
 
                 <div class="form-group">
                     <label class="form-label">默认模型</label>
-                    <input type="text" id="cfgModel" class="form-input" placeholder="例如: gpt-4o">
+                    <input type="text" id="cfgModel" class="form-input" placeholder="例如: gpt-4o" list="modelOptions">
+                    <datalist id="modelOptions">
+                        <!-- Options will be populated here -->
+                    </datalist>
                 </div>
 
                 <div class="actions">
@@ -372,6 +375,14 @@
             document.getElementById('cfgKey').value = currentConfig.api_key || '';
             document.getElementById('cfgModel').value = currentConfig.model_name || '';
 
+            // Populate datalist if models exist
+            const datalist = document.getElementById('modelOptions');
+            if (currentConfig.models && Array.isArray(currentConfig.models)) {
+                datalist.innerHTML = currentConfig.models.map(m => `<option value="${m}">${m}</option>`).join('');
+            } else {
+                datalist.innerHTML = '';
+            }
+
             document.getElementById('btnSetActive').style.display = currentConfig.id ? 'block' : 'none';
             renderList();
         }
@@ -397,11 +408,22 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.data && data.data.length > 0) {
-                        alert(`验证成功！已检到 ${data.data.length} 个可用模型。`);
-                        // Optional: auto-fill models to local storage or config
+                    if (data.data && Array.isArray(data.data)) {
+                        const models = data.data.map(m => m.id).sort();
+                        currentConfig.models = models;
+
+                        // Update UI
+                        const datalist = document.getElementById('modelOptions');
+                        datalist.innerHTML = models.map(m => `<option value="${m}">${m}</option>`).join('');
+
+                        // If current model is empty, pick the first one
+                        if (!document.getElementById('cfgModel').value) {
+                            document.getElementById('cfgModel').value = models[0];
+                        }
+
+                        alert(`验证成功！已检到 ${models.length} 个可用模型，下拉列表已更新。`);
                     } else {
-                        alert('验证成功，但未发现可用模型。');
+                        alert('验证成功，但未检到可用模型。');
                     }
                 } else {
                     throw new Error(`验证失败 (状态码: ${response.status})`);
@@ -423,7 +445,8 @@
                 name: document.getElementById('cfgName').value.trim(),
                 api_base: document.getElementById('cfgBase').value.trim(),
                 api_key: document.getElementById('cfgKey').value.trim(),
-                model_name: document.getElementById('cfgModel').value.trim()
+                model_name: document.getElementById('cfgModel').value.trim(),
+                models: currentConfig.models || []
             };
 
             btn.disabled = true;
