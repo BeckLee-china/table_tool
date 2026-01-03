@@ -190,6 +190,16 @@
             box-shadow: 0 0 0 3px var(--glow);
         }
 
+        select.form-input {
+            cursor: pointer;
+            background-color: var(--white);
+            appearance: auto !important;
+            /* Force native arrow and behavior */
+            -webkit-appearance: auto !important;
+            height: 48px;
+            /* Fixed height for consistency */
+        }
+
         .actions {
             display: flex;
             gap: 12px;
@@ -296,10 +306,9 @@
 
                 <div class="form-group">
                     <label class="form-label">默认模型</label>
-                    <input type="text" id="cfgModel" class="form-input" placeholder="例如: gpt-4o" list="modelOptions">
-                    <datalist id="modelOptions">
-                        <!-- Options will be populated here -->
-                    </datalist>
+                    <select id="cfgModel" class="form-input">
+                        <option value="">点击“验证”获取模型列表</option>
+                    </select>
                 </div>
 
                 <div class="actions">
@@ -317,6 +326,10 @@
                 <p>选择一个配置进行编辑，或点击左侧新增</p>
             </div>
         </main>
+    </div>
+
+    <div style="position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: var(--text-muted); opacity: 0.5;">
+        Build: v1.1.2 (Latest)
     </div>
 
     <script src="js/supabase-client.js"></script>
@@ -373,14 +386,35 @@
             document.getElementById('cfgName').value = currentConfig.name;
             document.getElementById('cfgBase').value = currentConfig.api_base || '';
             document.getElementById('cfgKey').value = currentConfig.api_key || '';
-            document.getElementById('cfgModel').value = currentConfig.model_name || '';
 
-            // Populate datalist if models exist
-            const datalist = document.getElementById('modelOptions');
-            if (currentConfig.models && Array.isArray(currentConfig.models)) {
-                datalist.innerHTML = currentConfig.models.map(m => `<option value="${m}">${m}</option>`).join('');
-            } else {
-                datalist.innerHTML = '';
+            const modelSelect = document.getElementById('cfgModel');
+
+            // Core List
+            const commonModels = [
+                'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo',
+                'claude-3-5-sonnet', 'claude-3-5-haiku', 'claude-3-opus',
+                'deepseek-chat', 'deepseek-coder', 'gemini-1.5-pro', 'gemini-1.5-flash'
+            ];
+
+            // Merge existing and common, unique, sorted
+            const models = [...new Set([...(currentConfig.models || []), ...commonModels])].sort();
+            const activeModel = currentConfig.model_name || 'gpt-4o';
+
+            modelSelect.innerHTML = models.map(m =>
+                `<option value="${m}" ${m === activeModel ? 'selected' : ''}>${m}</option>`
+            ).join('');
+
+            // Double check selection
+            modelSelect.value = activeModel;
+
+            // If still not set, force add it
+            if (activeModel && modelSelect.value !== activeModel) {
+                const opt = document.createElement('option');
+                opt.value = activeModel;
+                opt.textContent = activeModel;
+                opt.selected = true;
+                modelSelect.prepend(opt);
+                modelSelect.value = activeModel;
             }
 
             document.getElementById('btnSetActive').style.display = currentConfig.id ? 'block' : 'none';
@@ -413,15 +447,19 @@
                         currentConfig.models = models;
 
                         // Update UI
-                        const datalist = document.getElementById('modelOptions');
-                        datalist.innerHTML = models.map(m => `<option value="${m}">${m}</option>`).join('');
+                        const modelSelect = document.getElementById('cfgModel');
+                        const currentVal = modelSelect.value;
 
-                        // If current model is empty, pick the first one
-                        if (!document.getElementById('cfgModel').value) {
-                            document.getElementById('cfgModel').value = models[0];
+                        modelSelect.innerHTML = models.map(m =>
+                            `<option value="${m}" ${m === currentVal ? 'selected' : ''}>${m}</option>`
+                        ).join('');
+
+                        // If no selection, pick first
+                        if (!modelSelect.value && models.length > 0) {
+                            modelSelect.value = models[0];
                         }
 
-                        alert(`验证成功！已检到 ${models.length} 个可用模型，下拉列表已更新。`);
+                        alert(`验证成功！已加载 ${models.length} 个模型。`);
                     } else {
                         alert('验证成功，但未检到可用模型。');
                     }
