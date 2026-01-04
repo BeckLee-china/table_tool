@@ -1111,8 +1111,7 @@ ${contentReq}
                             { role: 'system', content: systemPrompt },
                             { role: 'user', content: userPrompt }
                         ],
-                        temperature: 0.7,
-                        max_tokens: 4000
+                        temperature: 0.7
                     })
                 });
 
@@ -1263,7 +1262,7 @@ ${contentReq}
         }
 
         // ========== Initialize ==========
-        loadApiConfig();
+        // API 配置初始化由 supabase-client.js 加载后的 async IIFE 处理
 
         // ========== Auto-resize Textareas ==========
         function autoResizeTextarea(textarea) {
